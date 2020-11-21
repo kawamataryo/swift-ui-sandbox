@@ -15,16 +15,23 @@ struct ContentView: View {
         VStack {
             Text("Timer \(timerVal) seconds").font(.body)
                 Picker(selection: $timerVal, label: Text("")) /*@START_MENU_TOKEN@*/{
-                    Text("1").tag(1)
-                    Text("5").tag(5)
-                    Text("10").tag(10)
-                    Text("30").tag(30)
-                    Text("60").tag(60)
+                    TimeTag(seconds: 1)
+                    TimeTag(seconds: 5)
+                    TimeTag(seconds: 10)
+                    TimeTag(seconds: 30)
+                    TimeTag(seconds: 60)
                 }/*@END_MENU_TOKEN@*/
             NavigationLink(destination: SecondView(secondScreenShow:
                                                     $secondScreenShow, timeVal: timerVal, initialTime: timerVal), isActive:
                                                     $secondScreenShow, label: {Text("Start")})
         }
+    }
+}
+
+struct TimeTag: View {
+    var seconds:Int
+    var body: some View {
+        Text("\(seconds)").tag(seconds).font(.title2)
     }
 }
 
@@ -40,9 +47,6 @@ struct SecondView: View {
                 Text("\(timeVal)").font(.system(size: 40))
                     .onAppear() {
                         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                            if self.timeVal == 0 {
-                                WKInterfaceDevice.current().play(.notification)
-                            }
                             if self.timeVal > -1 {
                                 self.timeVal -= 1
                             }
@@ -67,7 +71,9 @@ struct SecondView: View {
                     .font(.title)
                     .fontWeight(.heavy)
                     .foregroundColor(Color.green)
-            })
+            }).onAppear() {
+                WKInterfaceDevice.current().play(.notification)
+            }
         }
     }
 }
@@ -91,7 +97,6 @@ struct ProgressBar: View {
         }
     }
 }
-
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
