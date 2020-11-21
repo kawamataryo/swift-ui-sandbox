@@ -13,17 +13,17 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Text("タイマー \(timerVal) 秒").font(.body)
+            Text("Timer \(timerVal) seconds").font(.body)
                 Picker(selection: $timerVal, label: Text("")) /*@START_MENU_TOKEN@*/{
                     Text("1").tag(1)
                     Text("5").tag(5)
-                    Text("10").tag(15)
+                    Text("10").tag(10)
                     Text("30").tag(30)
                     Text("60").tag(60)
                 }/*@END_MENU_TOKEN@*/
             NavigationLink(destination: SecondView(secondScreenShow:
-                                                    $secondScreenShow, timeVal: timerVal), isActive:
-                                                    $secondScreenShow, label: {Text("Go")})
+                                                    $secondScreenShow, timeVal: timerVal, initialTime: timerVal), isActive:
+                                                    $secondScreenShow, label: {Text("Start")})
         }
     }
 }
@@ -31,35 +31,33 @@ struct ContentView: View {
 struct SecondView: View {
     @Binding var secondScreenShow:Bool
     @State var timeVal:Int
+    var initialTime:Int
+
     var body: some View {
-        if timeVal > 0 {
+        if timeVal > -1 {
         VStack {
             ZStack {
                 Text("\(timeVal)").font(.system(size: 40))
                     .onAppear() {
                         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                            if self.timeVal > 0 {
+                            if self.timeVal == 0 {
+                                WKInterfaceDevice.current().play(.notification)
+                            }
+                            if self.timeVal > -1 {
                                 self.timeVal -= 1
                             }
                         }
                     }
-                Circle()
-                    .stroke(Color.white, style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
-                    .rotationEffect(.degrees(240))
-                    .frame(width: 100, height:100)
-                Circle()
-                    .trim(from: CGFloat(self.timeVal / 100), to: 0.5)
-                    .stroke(Color.red,style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
-                    .rotationEffect(.degrees(240))
-                    .rotation3DEffect(Angle(degrees: 100), axis: (x: 0, y: 0, z: 0))
-                    .frame(width: 100, height: 100)
+                ProgressBar(progress: self.timeVal, initialTime: initialTime)
+                    .frame(width: 90.0, height: 90.0)
             }
             Button(action: {
                 self.secondScreenShow = false
             }, label: {
-                Text("キャンセル")
+                Text("Cancel")
                     .foregroundColor(Color.red)
             })
+            .padding(.top)
         }
         } else {
             Button(action: {
@@ -74,10 +72,30 @@ struct SecondView: View {
     }
 }
 
+struct ProgressBar: View {
+    var progress: Int
+    var initialTime: Int
+    
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(lineWidth: 15.0)
+                .opacity(0.3)
+                .foregroundColor(Color.red)
+            Circle()
+                .trim(from: 0.0, to: CGFloat(min(Float(self.progress) / Float(self.initialTime), 1.0)))
+                .stroke(style: StrokeStyle(lineWidth: 15.0, lineCap: .round, lineJoin: .round))
+                .foregroundColor(Color.red)
+                .rotationEffect(Angle(degrees: 270.0))
+                .animation(.linear)
+        }
+    }
+}
+
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ContentView()
             ContentView()
         }
     }
